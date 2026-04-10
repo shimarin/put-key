@@ -41,6 +41,8 @@ def main() -> None:
     # 同一app_idのインスタンスが既に存在する場合、GtkApplicationが前面に出して
     # 2つ目のプロセスは即終了する（デフォルト動作）
 
+    exit_code = [1]  # キャンセル扱いをデフォルトとし、登録成功時に 0 にする
+
     def on_activate(app: Gtk.Application) -> None:
         # 既にウィンドウがある場合（2つ目の起動によるactivate再送）は前面に出すだけ
         existing = app.get_windows()
@@ -115,6 +117,7 @@ def main() -> None:
         def commit(value: str) -> None:
             try:
                 store_key(key_name, value)
+                exit_code[0] = 0
                 app.quit()
             except Exception as e:
                 error_label.set_text(f"登録失敗: {e}")
@@ -151,7 +154,8 @@ def main() -> None:
         entry.grab_focus()
 
     app.connect("activate", on_activate)
-    sys.exit(app.run([]))
+    app.run([])
+    sys.exit(exit_code[0])
 
 
 if __name__ == "__main__":
